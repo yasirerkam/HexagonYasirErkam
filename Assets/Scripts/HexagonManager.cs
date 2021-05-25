@@ -6,55 +6,64 @@ using UnityEngine;
 
 public class HexagonManager : MonoBehaviour
 {
-    public GameObject circle;
     private IEnumerable<KeyValuePair<Transform, float>> closest3Tranforms;
+    private MyGameManager myGameManager;
+    private Animator circleAnimator;
 
-    public GameObject Circle { get => circle; set => circle = value; }
+    public IEnumerable<KeyValuePair<Transform, float>> Closest3Tranforms { get => closest3Tranforms; set => closest3Tranforms = value; }
+
+    private void Awake()
+    {
+        myGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
+        circleAnimator = myGameManager.Circle.GetComponent<Animator>();
+    }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !circleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation"))
         {
-            CalcClosest3Points(out closest3Tranforms);
-            CreatePointObject(closest3Tranforms);
+            CalcClosest3Transforms(Input.mousePosition, out closest3Tranforms);
+            CreatePointObject();
+            Rotate3Transform();
         }
     }
 
-    private void CreatePointObject(IEnumerable<KeyValuePair<Transform, float>> closest3points)
+    private void CreatePointObject()
     {
         List<Vector3> positions = new List<Vector3>();
 
-        foreach (var kvp in closest3points)
+        foreach (var kvp in Closest3Tranforms)
         {
             positions.Add(kvp.Key.position);
         }
         Vector3 center = GetCentroid(positions) - Vector3.forward;
 
-        if (Circle.GetComponent<SpriteRenderer>().enabled == false)
+        if (myGameManager.Circle.GetComponent<SpriteRenderer>().enabled == false)
         {
-            Circle.GetComponent<SpriteRenderer>().enabled = true;
+            myGameManager.Circle.GetComponent<SpriteRenderer>().enabled = true;
         }
 
-        Circle.transform.position = center;
+        myGameManager.Circle.transform.position = center;
     }
 
     private void Rotate3Transform()
     {
-        foreach (var item in closest3Tranforms)
+        foreach (var item in Closest3Tranforms)
         {
-            item.Key.parent = Circle.transform;
+            item.Key.parent = myGameManager.Circle.transform;
         }
 
-        Circle.transform.Rotate(0, 0, 15);
-
-        foreach (var item in closest3Tranforms)
-        {
-            item.Key.parent = transform;
-        }
+        circleAnimator.SetTrigger("rotate");
     }
 
-    private void CalcClosest3Points(out IEnumerable<KeyValuePair<Transform, float>> closest3points)
+    private void CalcClosest3Transforms(Vector3 originPos, out IEnumerable<KeyValuePair<Transform, float>> closest3Transforms)
     {
+        closest3Transforms = CalcClosestTransforms(originPos).Take(3);
+    }
+
+    private IEnumerable<KeyValuePair<Transform, float>> CalcClosestTransforms(Vector3 originPos)
+    {
+        IEnumerable<KeyValuePair<Transform, float>> closestTransforms;
         Dictionary<Transform, float> childDistance = new Dictionary<Transform, float>();
 
         for (int i = 0; i < transform.childCount; i++)
@@ -62,12 +71,54 @@ public class HexagonManager : MonoBehaviour
             Transform child = transform.GetChild(i).transform;
             Vector2 childScrPos = Camera.main.WorldToScreenPoint(child.position);
 
-            float distance = Vector2.Distance(childScrPos, Input.mousePosition);
+            float distance = Vector2.Distance(childScrPos, originPos);
 
             childDistance.Add(child, distance);
         }
 
-        closest3points = childDistance.OrderBy(kvp => kvp.Value).Take(3);
+        closestTransforms = childDistance.OrderBy(kvp => kvp.Value);
+
+        return closestTransforms;
+    }
+
+    public void SetColors()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            IEnumerable<KeyValuePair<Transform, float>> closestTransforms = CalcClosestTransforms(Camera.main.WorldToScreenPoint(transform.GetChild(i).position));
+
+            Dictionary<Color, int> colorCount = new Dictionary<Color, int>(myGameManager.GlobalVariables.Colors.Count);
+            foreach (var color in myGameManager.GlobalVariables.Colors)
+            {
+                colorCount.Add(color, 0);
+            }
+
+            List<KeyValuePair<Transform, float>> closestTransformList = closestTransforms.ToList();
+            for (int j = 1; j < closestTransformList.Count; j++)
+            {
+                if (closestTransformList[j].Value < 60)
+                {
+                    if (colorCount.ContainsKey(closestTransformList[j].Key.GetComponent<SpriteRenderer>().color))
+                    {
+                        colorCount[closestTransformList[j].Key.GetComponent<SpriteRenderer>().color]++;
+                    }
+                }
+                else
+                    break;
+            }
+
+            for (int j = 0; j < myGameManager.GlobalVariables.Colors.Count; j++)
+            {
+                int rnd = UnityEngine.Random.Range(0, myGameManager.GlobalVariables.Colors.Count);
+                Color rndColor = myGameManager.GlobalVariables.Colors[rnd];
+
+                if (colorCount[rndColor] < 2)
+                {
+                    transform.GetChild(i).GetComponent<SpriteRenderer>().color = rndColor;
+                    break;
+                }
+            }
+        }
     }
 
     public static Vector3 GetCentroid(List<Vector3> poly)

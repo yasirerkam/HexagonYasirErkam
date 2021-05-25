@@ -19,9 +19,13 @@ public class MyGrid : MonoBehaviour
     private int countX;
     private float cellSize;
     private int[,] gridArray;
+    private MyGameManager myGameManager;
+
+    public MyGameManager MyGameManager { get => myGameManager; set => myGameManager = value; }
 
     private void Awake()
     {
+        MyGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
         distanceOfHexagons = 0.025f;
     }
 
@@ -71,6 +75,8 @@ public class MyGrid : MonoBehaviour
                 debugTextArray[eventArgs.x, eventArgs.y].text = gridArray[eventArgs.x, eventArgs.y].ToString();
             };
         }
+
+        MyGameManager.HexagonManager.SetColors();
     }
 
     public int GetWidth()

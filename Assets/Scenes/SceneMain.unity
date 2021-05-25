@@ -121,6 +121,71 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &102835304
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 102835305}
+  - component: {fileID: 102835306}
+  - component: {fileID: 102835307}
+  m_Layer: 0
+  m_Name: MyGameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &102835305
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102835304}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.17601506, y: -0.41661733, z: -0.6671491}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &102835306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102835304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 603d9fd93ff3ae647a85f78e3c6e3ccd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  myGrid: {fileID: 297954951}
+  hexagonManager: {fileID: 297954952}
+  circle: {fileID: 366853467}
+--- !u!114 &102835307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102835304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44d418420fabaac4b9129dbfa192d5b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  colors:
+  - {r: 0.6792453, g: 0.13136347, b: 0.13136347, a: 1}
+  - {r: 0.8018868, g: 0.20803669, b: 0.664902, a: 1}
+  - {r: 0.28435388, g: 0.29927987, b: 0.8490566, a: 1}
+  - {r: 0.14217694, g: 0.6698113, b: 0.66499025, a: 1}
+  - {r: 0.22794895, g: 0.764151, b: 0.19824673, a: 1}
 --- !u!1001 &174117293
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,7 +201,7 @@ PrefabInstance:
     - target: {fileID: 6951030960865433814, guid: 5c5d2e93a1dbf314b9cc26d72232e4ba,
         type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6951030960865433814, guid: 5c5d2e93a1dbf314b9cc26d72232e4ba,
         type: 3}
@@ -225,7 +290,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &297954951
 MonoBehaviour:
@@ -240,7 +305,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   distanceOfHexagons: 0
-  hexagon: {fileID: 4016820276438064848, guid: 37b7084580c9eba43b11c6daa6d2b4ac, type: 3}
+  hexagon: {fileID: 7046105880609234205, guid: 37b7084580c9eba43b11c6daa6d2b4ac, type: 3}
 --- !u!114 &297954952
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,7 +318,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb52f594f9d1a6745b240841b46791fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  circle: {fileID: 366853465}
 --- !u!1 &366853465 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6098593351393650253, guid: 5c5d2e93a1dbf314b9cc26d72232e4ba,
@@ -279,6 +343,18 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &366853467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 366853465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6e95e59659eb6f409d27d11b0e9196d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -360,5 +436,5 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
