@@ -6,8 +6,8 @@ using UnityEngine;
 
 public class HexagonManager : MonoBehaviour
 {
+    public MyGameManager myGameManager;
     private IEnumerable<KeyValuePair<Transform, float>> closest3Tranforms;
-    private MyGameManager myGameManager;
     private Animator circleAnimator;
 
     public IEnumerable<KeyValuePair<Transform, float>> Closest3Tranforms { get => closest3Tranforms; set => closest3Tranforms = value; }
@@ -61,7 +61,7 @@ public class HexagonManager : MonoBehaviour
         closest3Transforms = CalcClosestTransforms(originPos).Take(3);
     }
 
-    private IEnumerable<KeyValuePair<Transform, float>> CalcClosestTransforms(Vector3 originPos)
+    public IEnumerable<KeyValuePair<Transform, float>> CalcClosestTransforms(Vector3 originPos)
     {
         IEnumerable<KeyValuePair<Transform, float>> closestTransforms;
         Dictionary<Transform, float> childDistance = new Dictionary<Transform, float>();
@@ -85,14 +85,13 @@ public class HexagonManager : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; i++)
         {
-            IEnumerable<KeyValuePair<Transform, float>> closestTransforms = CalcClosestTransforms(Camera.main.WorldToScreenPoint(transform.GetChild(i).position));
-
             Dictionary<Color, int> colorCount = new Dictionary<Color, int>(myGameManager.GlobalVariables.Colors.Count);
             foreach (var color in myGameManager.GlobalVariables.Colors)
             {
                 colorCount.Add(color, 0);
             }
 
+            IEnumerable<KeyValuePair<Transform, float>> closestTransforms = CalcClosestTransforms(Camera.main.WorldToScreenPoint(transform.GetChild(i).position));
             List<KeyValuePair<Transform, float>> closestTransformList = closestTransforms.ToList();
             for (int j = 1; j < closestTransformList.Count; j++)
             {

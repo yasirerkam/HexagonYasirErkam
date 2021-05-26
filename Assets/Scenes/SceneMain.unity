@@ -181,11 +181,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   colors:
-  - {r: 0.6792453, g: 0.13136347, b: 0.13136347, a: 1}
-  - {r: 0.8018868, g: 0.20803669, b: 0.664902, a: 1}
-  - {r: 0.28435388, g: 0.29927987, b: 0.8490566, a: 1}
-  - {r: 0.14217694, g: 0.6698113, b: 0.66499025, a: 1}
-  - {r: 0.22794895, g: 0.764151, b: 0.19824673, a: 1}
+  - {r: 1, g: 0.24056602, b: 0.24056602, a: 1}
+  - {r: 0.88077605, g: 1, b: 0.34509802, a: 1}
+  - {r: 0.4009434, g: 0.41342357, b: 1, a: 1}
+  - {r: 0.3820755, g: 1, b: 0.9954228, a: 1}
+  - {r: 0.41211352, g: 1, b: 0.3820755, a: 1}
 --- !u!1001 &174117293
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -318,6 +318,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb52f594f9d1a6745b240841b46791fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myGameManager: {fileID: 0}
 --- !u!1 &366853465 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6098593351393650253, guid: 5c5d2e93a1dbf314b9cc26d72232e4ba,
