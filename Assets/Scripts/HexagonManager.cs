@@ -81,6 +81,68 @@ public class HexagonManager : MonoBehaviour
         return closestTransforms;
     }
 
+    public void DestroyDetermined(List<KeyValuePair<Transform, float>> closest3TransformList, int i, HashSet<Transform> willDestroy)
+    {
+        List<Vector3> emptyPos = new List<Vector3>();
+        if (willDestroy.Count > 1)
+        {
+            foreach (var trnsfrmDestroy in willDestroy)
+            {
+                int x, y;
+                myGameManager.MyGrid.GetXY(trnsfrmDestroy.position, out x, out y);
+                //Move(myGameManager.MyGrid.GetValue(x + 1, y + 1), myGameManager.MyGrid.GetValue(x + 1, y + 1).position - Vector3.up);
+
+                emptyPos.Add(trnsfrmDestroy.position);
+                Destroy(trnsfrmDestroy.gameObject);
+            }
+            emptyPos.Add(closest3TransformList[i].Key.position);
+            Destroy(closest3TransformList[i].Key.gameObject);
+
+            myGameManager.MyGrid.MoveHexagonsToEmpty(myGameManager, emptyPos);
+        }
+    }
+
+    public void DetermineWhichWillDestroy(Color colorAtCenterHex, Dictionary<Color, List<Transform>> colorCount, HashSet<Transform> willDestroy)
+    {
+        for (int k = 0; k < colorCount[colorAtCenterHex].Count - 1; k++)
+        {
+            for (int l = k + 1; l < colorCount[colorAtCenterHex].Count; l++)
+            {
+                float d = Vector3.Distance(colorCount[colorAtCenterHex][k].position, colorCount[colorAtCenterHex][l].position);
+                if (d < 0.60)
+                {
+                    willDestroy.Add(colorCount[colorAtCenterHex][k]);
+                    willDestroy.Add(colorCount[colorAtCenterHex][l]);
+                }
+            }
+        }
+    }
+
+    public Dictionary<Color, List<Transform>> CalcColorCount(Vector3 hexAtCenter)
+    {
+        Dictionary<Color, List<Transform>> colorCount = new Dictionary<Color, List<Transform>>(myGameManager.GlobalVariables.Colors.Count);
+        foreach (var color in myGameManager.GlobalVariables.Colors)
+        {
+            colorCount.Add(color, new List<Transform>());
+        }
+
+        List<KeyValuePair<Transform, float>> closestTransformList = CalcClosestTransforms(Camera.main.WorldToScreenPoint(hexAtCenter)).ToList();
+        for (int j = 1; j < closestTransformList.Count; j++)
+        {
+            if (closestTransformList[j].Value < 60)
+            {
+                if (colorCount.ContainsKey(closestTransformList[j].Key.GetComponent<SpriteRenderer>().color))
+                {
+                    colorCount[closestTransformList[j].Key.GetComponent<SpriteRenderer>().color].Add(closestTransformList[j].Key);
+                }
+            }
+            else
+                break;
+        }
+
+        return colorCount;
+    }
+
     public void SetColors()
     {
         for (int i = 0; i < transform.childCount; i++)
