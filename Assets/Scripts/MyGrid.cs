@@ -2,39 +2,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class MyGrid : MonoBehaviour
 {
-    public float distanceOfHexagons;
+    private MyGameManager myGameManager;
     public GameObject hexagon;
+    public float distanceOfHexagons;
     private int countY;
     private int countX;
-    private float cellSize;
     private Vector3[,] gridPosArray;
-    private MyGameManager myGameManager;
-    public float droppingTime { get; set; }
 
+    private float DroppingTime { get; set; }
     public MyGameManager MyGameManager { get => myGameManager; set => myGameManager = value; }
     public Vector3[,] GridPosArray { get => gridPosArray; set => gridPosArray = value; }
+    public GameObject Hexagon { get => hexagon; set => hexagon = value; }
 
     private void Awake()
     {
         MyGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
         distanceOfHexagons = 0.025f;
-        //droppingTime = .15f;
-        droppingTime = .5f;
-    }
-
-    private void Start()
-    {
-        CreateGrid(9, 8, .5f);
+        DroppingTime = myGameManager.GlobalVariables.DroppingTime;
     }
 
     public void CreateGrid(int countX, int countY, float cellSize)
     {
         this.countY = countY;
         this.countX = countX;
-        this.cellSize = cellSize;
 
         GridPosArray = new Vector3[countX, countY];
 
@@ -47,12 +41,12 @@ public class MyGrid : MonoBehaviour
             {
                 for (int y = 0; y < countY; y++)
                 {
-                    GameObject obj;
+                    GameObject go;
 
-                    //obj = Instantiate(hexagon, GetWorldPosition(x, y) + new Vector3(cellSize * -.125f * x + distanceOfHexagons * x, cellSize * .5f + distanceOfHexagons * y), Quaternion.identity, transform);
-                    obj = Instantiate(hexagon, GetWorldPosition(x, y), Quaternion.identity, transform);
+                    go = Instantiate(Hexagon, GetWorldPosition(x, y), Quaternion.identity, transform);
+                    go.transform.localScale *= MyGameManager.GlobalVariables.HexagonScale;
 
-                    GridPosArray[x, y] = obj.transform.position;
+                    GridPosArray[x, y] = go.transform.position;
 
                     //Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x, y + 1), Color.white, 100f);
                     //Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x + 1, y), Color.white, 100f);
@@ -63,6 +57,7 @@ public class MyGrid : MonoBehaviour
         }
 
         MyGameManager.HexagonManager.SetColors();
+        MyGameManager.SetInitPosition();
     }
 
     public int GetWidth()
@@ -75,19 +70,13 @@ public class MyGrid : MonoBehaviour
         return countX;
     }
 
-    public float GetCellSize()
-    {
-        return cellSize;
-    }
-
     public Vector3 GetWorldPosition(int x, int y)
     {
-        float distance = 0.08f;
-        Vector3 pos = new Vector3(x, y) * cellSize * (1 - distance) + transform.position - new Vector3(x * cellSize * .125f, 0, 0);
+        Vector3 pos = transform.position + new Vector3(x, y) * Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale - new Vector3(x * Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale * .125f, 0, 0);
 
         if (x % 2 == 0)
         {
-            return pos + new Vector3(0, cellSize / (2 * (1 + distance)), 0);
+            return pos + new Vector3(0, Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale / 2, 0);
         }
         else
         {
@@ -144,7 +133,7 @@ public class MyGrid : MonoBehaviour
         return GetValue(x, y);
     }
 
-    public void MoveHexagonsToEmpty(MyGameManager myGameManager, List<Vector3> emptyPositions)
+    public void MoveHexagonsToEmpty(List<Vector3> emptyPositions)
     {
         Dictionary<int, List<int>> xyDictEmptyList = new Dictionary<int, List<int>>();
         List<(int x, int y)> xyEmptyList = new List<(int x, int y)>();
@@ -153,7 +142,7 @@ public class MyGrid : MonoBehaviour
         {
             int x, y;
 
-            myGameManager.MyGrid.GetXY(emptyPositions[i], out x, out y);
+            MyGameManager.MyGrid.GetXY(emptyPositions[i], out x, out y);
 
             xyEmptyList.Add((x, y));
         }
@@ -183,7 +172,7 @@ public class MyGrid : MonoBehaviour
                 try
                 {
                     Transform trnsfrm = GetValue(xyEmpty.Key, y + 2);
-                    IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, droppingTime, 2);
+                    IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, DroppingTime, 2);
                     StartCoroutine(coroutine);
                 }
                 catch (Exception)
@@ -198,7 +187,7 @@ public class MyGrid : MonoBehaviour
                 try
                 {
                     Transform trnsfrm = GetValue(xyEmpty.Key, y + 1);
-                    IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, droppingTime, 1);
+                    IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, DroppingTime, 1);
                     StartCoroutine(coroutine);
                 }
                 catch (Exception)
@@ -211,6 +200,7 @@ public class MyGrid : MonoBehaviour
 
     private IEnumerator Move(Transform trnsfrm, KeyValuePair<int, List<int>> xyEmpty, int y, float duration, int hexCount)
     {
+        Assert.IsNotNull(trnsfrm, "Transform can't be Null");
         Vector3 targetPosition = GetWorldPosition(xyEmpty.Key, y);
         float time = 0;
         Vector3 startPosition = trnsfrm.position;
@@ -229,7 +219,7 @@ public class MyGrid : MonoBehaviour
         if (y < countY - hexCount)
         {
             Transform trnsfrmP = GetValue(xyEmpty.Key, y + hexCount);
-            IEnumerator coroutine = Move(trnsfrmP, xyEmpty, y, droppingTime, hexCount);
+            IEnumerator coroutine = Move(trnsfrmP, xyEmpty, y, DroppingTime, hexCount);
             StartCoroutine(coroutine);
         }
         else
@@ -242,22 +232,56 @@ public class MyGrid : MonoBehaviour
     {
         if (y < countY)
         {
-            var go = Instantiate(hexagon, GetWorldPosition(xy.Key, y) + new Vector3(0, 10, 0), Quaternion.identity, transform);
-            go.GetComponent<SpriteRenderer>().color = myGameManager.GlobalVariables.Colors[UnityEngine.Random.Range(0, myGameManager.GlobalVariables.Colors.Count)];
+            var go = Instantiate(Hexagon, GetWorldPosition(xy.Key, y) + new Vector3(0, MyGameManager.GlobalVariables.CreatingDistance, 0), Quaternion.identity, transform);
+            go.transform.localScale *= MyGameManager.GlobalVariables.HexagonScale;
+            go.GetComponent<SpriteRenderer>().color = MyGameManager.GlobalVariables.Colors[UnityEngine.Random.Range(0, MyGameManager.GlobalVariables.Colors.Count)];
             Transform trnsfrmP = go.transform;
-            IEnumerator coroutine = Move(trnsfrmP, xy, y, droppingTime, hexCount);
+            IEnumerator coroutine = Move(trnsfrmP, xy, y, DroppingTime, hexCount);
             StartCoroutine(coroutine);
+        }
+        else
+        {
+            if (IsInvoking("CheckMatches") == false)
+            {
+                Invoke("CheckMatches", .75f);
+            }
         }
     }
 
     public void CheckMatches()
     {
-        Transform[] transforms = GetComponents<Transform>();
+        Transform[] transforms = GetComponentsInChildren<Transform>();
 
-        foreach (var trns in transforms)
+        for (int i = 1; i < transforms.Length; i++)
         {
             int x, y;
-            GetXY(trns.position, out x, out y);
+            GetXY(transforms[i].position, out x, out y);
+            Transform trns = transforms[i];
+
+            if (CheckMatche(trns))
+            {
+                break;
+            }
         }
+    }
+
+    public bool CheckMatche(Transform trns)
+    {
+        Color closesestColor = trns.GetComponent<SpriteRenderer>().color;
+        Dictionary<Color, List<Transform>> colorCount = MyGameManager.HexagonManager.CalcColorCount(trns.position);
+
+        //colorCount[closesestColor].Add(closest3TransformList[i].Key);
+        HashSet<Transform> willDestroy = new HashSet<Transform>();
+        if (colorCount[closesestColor].Count > 1)
+        {
+            MyGameManager.HexagonManager.DetermineWhichWillDestroy(closesestColor, colorCount, willDestroy);
+            MyGameManager.HexagonManager.DestroyDetermined(trns, willDestroy);
+            if (willDestroy.Count > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

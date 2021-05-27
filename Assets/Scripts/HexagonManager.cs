@@ -37,13 +37,9 @@ public class HexagonManager : MonoBehaviour
             positions.Add(kvp.Key.position);
         }
         Vector3 center = GetCentroid(positions) - Vector3.forward;
-
-        if (myGameManager.Circle.GetComponent<SpriteRenderer>().enabled == false)
-        {
-            myGameManager.Circle.GetComponent<SpriteRenderer>().enabled = true;
-        }
-
         myGameManager.Circle.transform.position = center;
+
+        myGameManager.CircleSpriteRenderer.enabled = true;
     }
 
     private void Rotate3Transform()
@@ -81,11 +77,13 @@ public class HexagonManager : MonoBehaviour
         return closestTransforms;
     }
 
-    public void DestroyDetermined(List<KeyValuePair<Transform, float>> closest3TransformList, int i, HashSet<Transform> willDestroy)
+    public void DestroyDetermined(Transform transformCenter, HashSet<Transform> willDestroy)
     {
         List<Vector3> emptyPos = new List<Vector3>();
         if (willDestroy.Count > 1)
         {
+            myGameManager.CircleSpriteRenderer.enabled = false;
+
             foreach (var trnsfrmDestroy in willDestroy)
             {
                 int x, y;
@@ -95,10 +93,10 @@ public class HexagonManager : MonoBehaviour
                 emptyPos.Add(trnsfrmDestroy.position);
                 Destroy(trnsfrmDestroy.gameObject);
             }
-            emptyPos.Add(closest3TransformList[i].Key.position);
-            Destroy(closest3TransformList[i].Key.gameObject);
+            emptyPos.Add(transformCenter.position);
+            Destroy(transformCenter.gameObject);
 
-            myGameManager.MyGrid.MoveHexagonsToEmpty(myGameManager, emptyPos);
+            myGameManager.MyGrid.MoveHexagonsToEmpty(emptyPos);
         }
     }
 

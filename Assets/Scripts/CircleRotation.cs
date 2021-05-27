@@ -32,18 +32,9 @@ public class CircleRotation : StateMachineBehaviour
         List<KeyValuePair<Transform, float>> closest3TransformList = hexagonManager.Closest3Tranforms.ToList();
         for (int i = 0; i < closest3TransformList.Count; i++)
         {
-            Color closesestColor = closest3TransformList[i].Key.GetComponent<SpriteRenderer>().color;
-
-            Dictionary<Color, List<Transform>> colorCount = hexagonManager.CalcColorCount(closest3TransformList[i].Key.position);
-
-            //colorCount[closesestColor].Add(closest3TransformList[i].Key);
-            HashSet<Transform> willDestroy = new HashSet<Transform>();
-            if (colorCount[closesestColor].Count > 1)
+            if (myGameManager.MyGrid.CheckMatche(closest3TransformList[i].Key))
             {
-                hexagonManager.DetermineWhichWillDestroy(closesestColor, colorCount, willDestroy);
-                hexagonManager.DestroyDetermined(closest3TransformList, i, willDestroy);
-
-                return;
+                break;
             }
         }
     }
