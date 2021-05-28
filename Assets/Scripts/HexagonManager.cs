@@ -9,23 +9,104 @@ public class HexagonManager : MonoBehaviour
     public MyGameManager myGameManager;
     private IEnumerable<KeyValuePair<Transform, float>> closest3Tranforms;
     private Animator circleAnimator;
-
+    private Vector2 touchPosStart, touchPosEnd;
     public IEnumerable<KeyValuePair<Transform, float>> Closest3Tranforms { get => closest3Tranforms; set => closest3Tranforms = value; }
+    public string LastTriggered { get; set; }
+    public bool LastTriggeredBool { get; set; }
+    public bool PlayAgain { get; set; }
+
+    public Animator CircleAnimator { get => circleAnimator; set => circleAnimator = value; }
+
+    private float deltaRotation;
+    private float previousRotation;
+    private float currentRotation;
+    public int TriggeredCount { get; set; }
 
     private void Awake()
     {
         myGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
-        circleAnimator = myGameManager.Circle.GetComponent<Animator>();
+        CircleAnimator = myGameManager.Circle.GetComponent<Animator>();
+        PlayAgain = false;
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0) && !circleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation"))
+        if (myGameManager.CircleSpriteRenderer.enabled == false)
+        {
+            CreateCircle();
+        }
+        else
+        {
+            RotateCircle();
+        }
+
+        if (circleAnimator.GetCurrentAnimatorStateInfo(0).IsName("EmptyState") && PlayAgain)
+        {
+            PlayAgain = false;
+            Rotate3Transform(LastTriggeredBool);
+        }
+    }
+
+    private void CreateCircle()
+    {
+        if (Input.GetMouseButtonUp(0) && !CircleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation") && !myGameManager.MyGrid.IsMoving)
         {
             CalcClosest3Transforms(Input.mousePosition, out closest3Tranforms);
             CreatePointObject();
-            Rotate3Transform();
         }
+    }
+
+    private void RotateCircle()
+    {
+        if (Input.GetMouseButtonDown(0) && !myGameManager.MyGrid.IsMoving)
+        {
+            touchPosStart = Input.mousePosition;
+
+            deltaRotation = 0f;
+            previousRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(CircleAnimator.transform.position), (Input.mousePosition));
+        }
+        else if (Input.GetMouseButtonUp(0) && !myGameManager.MyGrid.IsMoving)
+        {
+            touchPosEnd = Input.mousePosition;
+
+            currentRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(CircleAnimator.transform.position), (Input.mousePosition));
+            deltaRotation = Mathf.DeltaAngle(currentRotation, previousRotation);
+
+            if (deltaRotation > 10)
+            {
+                TriggeredCount = 0;
+                Rotate3Transform(true);
+            }
+            else if (deltaRotation < -10)
+            {
+                TriggeredCount = 0;
+                Rotate3Transform(false);
+            }
+            else
+            {
+                CalcClosest3Transforms(Input.mousePosition, out closest3Tranforms);
+                CreatePointObject();
+            }
+
+            previousRotation = currentRotation;
+        }
+    }
+
+    private float AngleBetweenPoints(Vector2 v2Position1, Vector2 v2Position2)
+    {
+        Vector2 v2FromLine = v2Position2 - v2Position1;
+        Vector2 v2ToLine = new Vector2(1, 0);
+
+        float fltAngle = Vector2.Angle(v2FromLine, v2ToLine);
+
+        // If rotation is more than 180
+        Vector3 v3Cross = Vector3.Cross(v2FromLine, v2ToLine);
+        if (v3Cross.z > 0)
+        {
+            fltAngle = 360f - fltAngle;
+        }
+
+        return fltAngle;
     }
 
     private void CreatePointObject()
@@ -42,14 +123,28 @@ public class HexagonManager : MonoBehaviour
         myGameManager.CircleSpriteRenderer.enabled = true;
     }
 
-    private void Rotate3Transform()
+    public void Rotate3Transform(bool inverse)
+    {
+        LastTriggeredBool = inverse;
+
+        if (inverse == false)
+        {
+            CircleAnimator.SetTrigger("rotateClock");
+        }
+        else
+        {
+            CircleAnimator.SetTrigger("rotateClockInverse");
+        }
+
+        TriggeredCount++;
+    }
+
+    public void ChangeParent(Transform parent)
     {
         foreach (var item in Closest3Tranforms)
         {
-            item.Key.parent = myGameManager.Circle.transform;
+            item.Key.parent = parent;
         }
-
-        circleAnimator.SetTrigger("rotate");
     }
 
     private void CalcClosest3Transforms(Vector3 originPos, out IEnumerable<KeyValuePair<Transform, float>> closest3Transforms)
@@ -92,9 +187,11 @@ public class HexagonManager : MonoBehaviour
 
                 emptyPos.Add(trnsfrmDestroy.position);
                 Destroy(trnsfrmDestroy.gameObject);
+                myGameManager.GlobalVariables.Score += myGameManager.GlobalVariables.ScoreIncreaseAmount;
             }
             emptyPos.Add(transformCenter.position);
             Destroy(transformCenter.gameObject);
+            myGameManager.GlobalVariables.Score += myGameManager.GlobalVariables.ScoreIncreaseAmount;
 
             myGameManager.MyGrid.MoveHexagonsToEmpty(emptyPos);
         }

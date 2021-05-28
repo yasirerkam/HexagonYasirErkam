@@ -7,10 +7,13 @@ using UnityEngine;
 public class CircleRotation : StateMachineBehaviour
 {
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
-    //override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-    //{
-    //
-    //}
+    override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        MyGameManager myGameManager = animator.GetComponent<Circle>().MyGameManager;
+        HexagonManager hexagonManager = myGameManager.HexagonManager;
+
+        hexagonManager.ChangeParent(myGameManager.Circle.transform);
+    }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
     //override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -24,19 +27,9 @@ public class CircleRotation : StateMachineBehaviour
         MyGameManager myGameManager = animator.GetComponent<Circle>().MyGameManager;
         HexagonManager hexagonManager = myGameManager.HexagonManager;
 
-        foreach (var item in hexagonManager.Closest3Tranforms)
-        {
-            item.Key.parent = hexagonManager.transform;
-        }
+        hexagonManager.ChangeParent(hexagonManager.transform);
 
-        List<KeyValuePair<Transform, float>> closest3TransformList = hexagonManager.Closest3Tranforms.ToList();
-        for (int i = 0; i < closest3TransformList.Count; i++)
-        {
-            if (myGameManager.MyGrid.CheckMatche(closest3TransformList[i].Key))
-            {
-                break;
-            }
-        }
+        myGameManager.MyGrid.CheckTrans3Matches();
     }
 
     // OnStateMove is called right after Animator.OnAnimatorMove()

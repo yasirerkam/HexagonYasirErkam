@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -12,11 +13,26 @@ public class MyGrid : MonoBehaviour
     private int countY;
     private int countX;
     private Vector3[,] gridPosArray;
+    private bool isMoving;
+    public GameObject bomb;
+    private bool createBomb;
 
+    public GameObject Bomb
+    {
+        get { return bomb; }
+        set { bomb = value; }
+    }
+
+    public bool IsMoving
+    {
+        get { return isMoving; }
+        set { isMoving = value; }
+    }
     private float DroppingTime { get; set; }
     public MyGameManager MyGameManager { get => myGameManager; set => myGameManager = value; }
     public Vector3[,] GridPosArray { get => gridPosArray; set => gridPosArray = value; }
     public GameObject Hexagon { get => hexagon; set => hexagon = value; }
+    public bool CreateBomb { get => createBomb; set => createBomb = value; }
 
     private void Awake()
     {
@@ -25,10 +41,10 @@ public class MyGrid : MonoBehaviour
         DroppingTime = myGameManager.GlobalVariables.DroppingTime;
     }
 
-    public void CreateGrid(int countX, int countY, float cellSize)
+    public void CreateGrid(int countX, int countY)
     {
-        this.countY = countY;
         this.countX = countX;
+        this.countY = countY;
 
         GridPosArray = new Vector3[countX, countY];
 
@@ -100,13 +116,6 @@ public class MyGrid : MonoBehaviour
         }
 
         throw new Exception();
-
-        //x = Mathf.FloorToInt(((worldPosition - transform.position).x + cellSize / 2) / cellSize);
-
-        //if ((Mathf.FloorToInt((worldPosition - transform.position).y % 0.25f)) % 2 == 0)
-        //    y = Mathf.FloorToInt(((worldPosition - transform.position).y - 0.25f) / cellSize);
-        //else
-        //    y = Mathf.FloorToInt((worldPosition - transform.position).y / cellSize);
     }
 
     public Transform GetValue(int x, int y)
@@ -162,38 +171,18 @@ public class MyGrid : MonoBehaviour
 
         foreach (var xyEmpty in xyDictEmptyList)
         {
-            if (xyEmpty.Value.Count == 2)
-            {
-                int y;
-                if (xyEmpty.Value[0] < xyEmpty.Value[1])
-                    y = xyEmpty.Value[0];
-                else
-                    y = xyEmpty.Value[1];
-                try
-                {
-                    Transform trnsfrm = GetValue(xyEmpty.Key, y + 2);
-                    IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, DroppingTime, 2);
-                    StartCoroutine(coroutine);
-                }
-                catch (Exception)
-                {
-                    CreateAndFall(xyEmpty, y, 2);
-                }
-            }
-            else if (xyEmpty.Value.Count == 1)
-            {
-                int y = xyEmpty.Value[0];
+            xyEmpty.Value.Sort();
+            int y = xyEmpty.Value[0];
 
-                try
-                {
-                    Transform trnsfrm = GetValue(xyEmpty.Key, y + 1);
-                    IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, DroppingTime, 1);
-                    StartCoroutine(coroutine);
-                }
-                catch (Exception)
-                {
-                    CreateAndFall(xyEmpty, y, 1);
-                }
+            try
+            {
+                Transform trnsfrm = GetValue(xyEmpty.Key, y + xyEmpty.Value.Count);
+                IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, DroppingTime, xyEmpty.Value.Count);
+                StartCoroutine(coroutine);
+            }
+            catch (Exception)
+            {
+                CreateAndFall(xyEmpty, y, xyEmpty.Value.Count);
             }
         }
     }
@@ -201,6 +190,7 @@ public class MyGrid : MonoBehaviour
     private IEnumerator Move(Transform trnsfrm, KeyValuePair<int, List<int>> xyEmpty, int y, float duration, int hexCount)
     {
         Assert.IsNotNull(trnsfrm, "Transform can't be Null");
+        IsMoving = true;
         Vector3 targetPosition = GetWorldPosition(xyEmpty.Key, y);
         float time = 0;
         Vector3 startPosition = trnsfrm.position;
@@ -226,13 +216,24 @@ public class MyGrid : MonoBehaviour
         {
             CreateAndFall(xyEmpty, y, hexCount);
         }
+
+        IsMoving = false;
     }
 
     private void CreateAndFall(KeyValuePair<int, List<int>> xy, int y, int hexCount)
     {
         if (y < countY)
         {
-            var go = Instantiate(Hexagon, GetWorldPosition(xy.Key, y) + new Vector3(0, MyGameManager.GlobalVariables.CreatingDistance, 0), Quaternion.identity, transform);
+            GameObject go;
+
+            if (CreateBomb)
+            {
+                go = Instantiate(Bomb, GetWorldPosition(xy.Key, y) + new Vector3(0, MyGameManager.GlobalVariables.CreatingDistance, 0), Quaternion.identity, transform);
+                CreateBomb = false;
+            }
+            else
+                go = Instantiate(Hexagon, GetWorldPosition(xy.Key, y) + new Vector3(0, MyGameManager.GlobalVariables.CreatingDistance, 0), Quaternion.identity, transform);
+
             go.transform.localScale *= MyGameManager.GlobalVariables.HexagonScale;
             go.GetComponent<SpriteRenderer>().color = MyGameManager.GlobalVariables.Colors[UnityEngine.Random.Range(0, MyGameManager.GlobalVariables.Colors.Count)];
             Transform trnsfrmP = go.transform;
@@ -283,5 +284,22 @@ public class MyGrid : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void CheckTrans3Matches()
+    {
+        List<KeyValuePair<Transform, float>> closest3TransformList = MyGameManager.HexagonManager.Closest3Tranforms.ToList();
+        for (int i = 0; i < closest3TransformList.Count; i++)
+        {
+            if (myGameManager.MyGrid.CheckMatche(closest3TransformList[i].Key))
+            {
+                return;
+            }
+        }
+
+        if (MyGameManager.HexagonManager.TriggeredCount < 3)
+        {
+            MyGameManager.HexagonManager.PlayAgain = true;
+        }
     }
 }
