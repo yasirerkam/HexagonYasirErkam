@@ -232,6 +232,7 @@ public class MyGrid : MonoBehaviour
             {
                 go = Instantiate(Bomb, GetWorldPosition(xy.Key, y) + new Vector3(0, MyGameManager.GlobalVariables.CreatingDistance, 0), Quaternion.identity, transform);
                 CreateBomb = false;
+                go.GetComponent<Bomb>().CountDown = UnityEngine.Random.Range(5, 11);
             }
             else
                 go = Instantiate(Hexagon, GetWorldPosition(xy.Key, y) + new Vector3(0, MyGameManager.GlobalVariables.CreatingDistance, 0), Quaternion.identity, transform);

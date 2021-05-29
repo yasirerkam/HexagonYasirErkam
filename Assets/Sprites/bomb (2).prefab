@@ -94,3 +94,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6054ce8118177f42b3f60e0f0c86c92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameOver: {fileID: 0}
+  bombs:
+  - {fileID: 21300000, guid: 15c831f519232664a9d7ffdbe77d7588, type: 3}
+  - {fileID: 21300000, guid: b6b18fcdd7d36fe47912337c32408b52, type: 3}
+  - {fileID: 21300000, guid: b38cec49fab05534993f74fff57c915f, type: 3}
+  - {fileID: 21300000, guid: cc7f5b23ba479f646a59bac419c66ee3, type: 3}
+  - {fileID: 21300000, guid: 5c5d9e42aeb25784fbc3ae7e88f8edd3, type: 3}
+  - {fileID: 21300000, guid: 425d2d3bd6250c849adf5ebaccfbe1e0, type: 3}
+  - {fileID: 21300000, guid: ba8131c704cedb54ea0397444ca0062e, type: 3}
+  - {fileID: 21300000, guid: f782055018459ea4290ae268318a879e, type: 3}
+  - {fileID: 21300000, guid: e00b5079d0a867f4c95efe691101a6b4, type: 3}
+  - {fileID: 21300000, guid: 753749d524cbf984cbfa7a02814f5312, type: 3}
+  - {fileID: 21300000, guid: 75f62819a1f0ab34abff9524e6293549, type: 3}

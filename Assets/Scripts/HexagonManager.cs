@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 
 public class HexagonManager : MonoBehaviour
 {
-    public MyGameManager myGameManager;
+    private MyGameManager myGameManager;
     private IEnumerable<KeyValuePair<Transform, float>> closest3Tranforms;
     private Animator circleAnimator;
     private Vector2 touchPosStart, touchPosEnd;
@@ -22,17 +22,18 @@ public class HexagonManager : MonoBehaviour
     private float previousRotation;
     private float currentRotation;
     public int TriggeredCount { get; set; }
+    public MyGameManager MyGameManager { get => myGameManager; set => myGameManager = value; }
 
     private void Awake()
     {
-        myGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
-        CircleAnimator = myGameManager.Circle.GetComponent<Animator>();
+        MyGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
+        CircleAnimator = MyGameManager.Circle.GetComponent<Animator>();
         PlayAgain = false;
     }
 
     private void Update()
     {
-        if (myGameManager.CircleSpriteRenderer.enabled == false)
+        if (MyGameManager.CircleSpriteRenderer.enabled == false)
         {
             if (Input.GetMouseButtonUp(0))
             {
@@ -53,7 +54,7 @@ public class HexagonManager : MonoBehaviour
 
     private void CreateCircle(Vector3 pointerPos)
     {
-        if (!CircleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation") && IsRotating == false && myGameManager.MyGrid.IsMoving == false)
+        if (!CircleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation") && IsRotating == false && MyGameManager.MyGrid.IsMoving == false)
         {
             CalcClosest3Transforms(Camera.main.ScreenToWorldPoint(pointerPos), out closest3Tranforms);
             CreatePointObject();
@@ -78,29 +79,31 @@ public class HexagonManager : MonoBehaviour
 
     private void CalcPrevRotation(Vector3 pointerPos)
     {
-        if (IsRotating == false && myGameManager.MyGrid.IsMoving == false)
+        if (IsRotating == false && MyGameManager.MyGrid.IsMoving == false)
         {
             deltaRotation = 0f;
-            previousRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(myGameManager.Circle.transform.position), pointerPos);
+            previousRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(MyGameManager.Circle.transform.position), pointerPos);
         }
     }
 
     private void DesicionOfMove(Vector3 pointerPos)
     {
-        if (IsRotating == false && myGameManager.MyGrid.IsMoving == false)
+        if (IsRotating == false && MyGameManager.MyGrid.IsMoving == false)
         {
-            currentRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(myGameManager.Circle.transform.position), pointerPos);
+            currentRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(MyGameManager.Circle.transform.position), pointerPos);
             deltaRotation = Mathf.DeltaAngle(currentRotation, previousRotation);
 
             if (deltaRotation > 10)
             {
                 TriggeredCount = 0;
                 Rotate3Transform(true);
+                CountDownBombs();
             }
             else if (deltaRotation < -10)
             {
                 TriggeredCount = 0;
                 Rotate3Transform(false);
+                CountDownBombs();
             }
             else
             {
@@ -138,9 +141,9 @@ public class HexagonManager : MonoBehaviour
             positions.Add(kvp.Key.position);
         }
         Vector3 center = GetCentroid(positions) - Vector3.forward;
-        myGameManager.Circle.transform.position = center;
+        MyGameManager.Circle.transform.position = center;
 
-        myGameManager.CircleSpriteRenderer.enabled = true;
+        MyGameManager.CircleSpriteRenderer.enabled = true;
     }
 
     public void Rotate3Transform(bool inverse)
@@ -226,23 +229,33 @@ public class HexagonManager : MonoBehaviour
         List<Vector3> emptyPos = new List<Vector3>();
         if (willDestroy.Count > 1)
         {
-            myGameManager.CircleSpriteRenderer.enabled = false;
+            MyGameManager.CircleSpriteRenderer.enabled = false;
 
             foreach (var trnsfrmDestroy in willDestroy)
             {
-                int x, y;
+                //int x, y;
                 //myGameManager.MyGrid.GetXY(trnsfrmDestroy.position, out x, out y);
                 //Move(myGameManager.MyGrid.GetValue(x + 1, y + 1), myGameManager.MyGrid.GetValue(x + 1, y + 1).position - Vector3.up);
 
                 emptyPos.Add(trnsfrmDestroy.position);
                 Destroy(trnsfrmDestroy.gameObject);
-                myGameManager.GlobalVariables.Score += myGameManager.GlobalVariables.ScoreIncreaseAmount;
+                MyGameManager.GlobalVariables.Score += MyGameManager.GlobalVariables.ScoreIncreaseAmount;
             }
             emptyPos.Add(transformCenter.position);
             Destroy(transformCenter.gameObject);
-            myGameManager.GlobalVariables.Score += myGameManager.GlobalVariables.ScoreIncreaseAmount;
+            MyGameManager.GlobalVariables.Score += MyGameManager.GlobalVariables.ScoreIncreaseAmount;
 
-            myGameManager.MyGrid.MoveHexagonsToEmpty(emptyPos);
+            MyGameManager.MyGrid.MoveHexagonsToEmpty(emptyPos);
+        }
+    }
+
+    public void CountDownBombs()
+    {
+        GameObject[] bombs = GameObject.FindGameObjectsWithTag("bomb");
+
+        foreach (var bomb in bombs)
+        {
+            bomb.GetComponent<Bomb>().CountDown--;
         }
     }
 
@@ -266,8 +279,8 @@ public class HexagonManager : MonoBehaviour
 
     public Dictionary<Color, List<Transform>> CalcColorCount(Vector3 hexAtCenter)
     {
-        Dictionary<Color, List<Transform>> colorCount = new Dictionary<Color, List<Transform>>(myGameManager.GlobalVariables.Colors.Count);
-        foreach (var color in myGameManager.GlobalVariables.Colors)
+        Dictionary<Color, List<Transform>> colorCount = new Dictionary<Color, List<Transform>>(MyGameManager.GlobalVariables.Colors.Count);
+        foreach (var color in MyGameManager.GlobalVariables.Colors)
         {
             colorCount.Add(color, new List<Transform>());
         }
@@ -293,8 +306,8 @@ public class HexagonManager : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; i++)
         {
-            Dictionary<Color, int> colorCount = new Dictionary<Color, int>(myGameManager.GlobalVariables.Colors.Count);
-            foreach (var color in myGameManager.GlobalVariables.Colors)
+            Dictionary<Color, int> colorCount = new Dictionary<Color, int>(MyGameManager.GlobalVariables.Colors.Count);
+            foreach (var color in MyGameManager.GlobalVariables.Colors)
             {
                 colorCount.Add(color, 0);
             }
@@ -314,10 +327,10 @@ public class HexagonManager : MonoBehaviour
                     break;
             }
 
-            for (int j = 0; j < myGameManager.GlobalVariables.Colors.Count; j++)
+            for (int j = 0; j < MyGameManager.GlobalVariables.Colors.Count; j++)
             {
-                int rnd = UnityEngine.Random.Range(0, myGameManager.GlobalVariables.Colors.Count);
-                Color rndColor = myGameManager.GlobalVariables.Colors[rnd];
+                int rnd = UnityEngine.Random.Range(0, MyGameManager.GlobalVariables.Colors.Count);
+                Color rndColor = MyGameManager.GlobalVariables.Colors[rnd];
 
                 if (colorCount[rndColor] < 2)
                 {

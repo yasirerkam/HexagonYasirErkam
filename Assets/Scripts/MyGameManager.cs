@@ -15,6 +15,14 @@ public class MyGameManager : MonoBehaviour
     private GlobalVariables globalVariables;
     [SerializeField]
     private Text score;
+    [SerializeField]
+    private UI ui;
+
+    public UI UI
+    {
+        get { return ui; }
+        set { ui = value; }
+    }
 
     public MyGrid MyGrid { get => myGrid; set => myGrid = value; }
     public HexagonManager HexagonManager { get => hexagonManager; set => hexagonManager = value; }
@@ -34,6 +42,9 @@ public class MyGameManager : MonoBehaviour
         MyGrid.CreateGrid(GlobalVariables.CountX, GlobalVariables.CountY);
     }
 
+    /// <summary>
+    /// Sets init positions of grid and hexagons
+    /// </summary>
     public void SetInitPosition()
     {
         (float sizeX, float sizeY) = GetSize();
@@ -51,6 +62,10 @@ public class MyGameManager : MonoBehaviour
         print("size/2 : " + moveDistance.x + ", " + moveDistance.y);
     }
 
+    /// <summary>
+    /// Get size of the grid
+    /// </summary>
+    /// <returns>tuple have sizes of x and y</returns>
     private (float sizeX, float sizeY) GetSize()
     {
         Transform[] childs = MyGrid.GetComponentsInChildren<Transform>();
