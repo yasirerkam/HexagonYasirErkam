@@ -47,6 +47,8 @@ public class MyGameManager : MonoBehaviour
                 MyGrid.GridPosArray[i, j] += moveDistance;
             }
         }
+
+        print("size/2 : " + moveDistance.x + ", " + moveDistance.y);
     }
 
     private (float sizeX, float sizeY) GetSize()

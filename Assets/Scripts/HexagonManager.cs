@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class HexagonManager : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class HexagonManager : MonoBehaviour
     public string LastTriggered { get; set; }
     public bool LastTriggeredBool { get; set; }
     public bool PlayAgain { get; set; }
-
+    public bool IsRotating { get; set; }
     public Animator CircleAnimator { get => circleAnimator; set => circleAnimator = value; }
 
     private float deltaRotation;
@@ -33,7 +34,10 @@ public class HexagonManager : MonoBehaviour
     {
         if (myGameManager.CircleSpriteRenderer.enabled == false)
         {
-            CreateCircle();
+            if (Input.GetMouseButtonUp(0))
+            {
+                CreateCircle(Input.mousePosition);
+            }
         }
         else
         {
@@ -47,29 +51,45 @@ public class HexagonManager : MonoBehaviour
         }
     }
 
-    private void CreateCircle()
+    private void CreateCircle(Vector3 pointerPos)
     {
-        if (Input.GetMouseButtonUp(0) && !CircleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation") && !myGameManager.MyGrid.IsMoving)
+        if (!CircleAnimator.GetCurrentAnimatorStateInfo(0).IsName("CircleRotation") && IsRotating == false && myGameManager.MyGrid.IsMoving == false)
         {
-            CalcClosest3Transforms(Input.mousePosition, out closest3Tranforms);
+            CalcClosest3Transforms(Camera.main.ScreenToWorldPoint(pointerPos), out closest3Tranforms);
             CreatePointObject();
         }
     }
 
     private void RotateCircle()
     {
-        if (Input.GetMouseButtonDown(0) && !myGameManager.MyGrid.IsMoving)
+        if (Input.GetMouseButtonDown(0))
         {
             touchPosStart = Input.mousePosition;
 
-            deltaRotation = 0f;
-            previousRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(CircleAnimator.transform.position), (Input.mousePosition));
+            CalcPrevRotation(Input.mousePosition);
         }
-        else if (Input.GetMouseButtonUp(0) && !myGameManager.MyGrid.IsMoving)
+        if (Input.GetMouseButtonUp(0))
         {
             touchPosEnd = Input.mousePosition;
 
-            currentRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(CircleAnimator.transform.position), (Input.mousePosition));
+            DesicionOfMove(Input.mousePosition);
+        }
+    }
+
+    private void CalcPrevRotation(Vector3 pointerPos)
+    {
+        if (IsRotating == false && myGameManager.MyGrid.IsMoving == false)
+        {
+            deltaRotation = 0f;
+            previousRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(myGameManager.Circle.transform.position), pointerPos);
+        }
+    }
+
+    private void DesicionOfMove(Vector3 pointerPos)
+    {
+        if (IsRotating == false && myGameManager.MyGrid.IsMoving == false)
+        {
+            currentRotation = AngleBetweenPoints(Camera.main.WorldToScreenPoint(myGameManager.Circle.transform.position), pointerPos);
             deltaRotation = Mathf.DeltaAngle(currentRotation, previousRotation);
 
             if (deltaRotation > 10)
@@ -84,7 +104,7 @@ public class HexagonManager : MonoBehaviour
             }
             else
             {
-                CalcClosest3Transforms(Input.mousePosition, out closest3Tranforms);
+                CalcClosest3Transforms(Camera.main.ScreenToWorldPoint(pointerPos), out closest3Tranforms);
                 CreatePointObject();
             }
 
@@ -135,15 +155,43 @@ public class HexagonManager : MonoBehaviour
         {
             CircleAnimator.SetTrigger("rotateClockInverse");
         }
+        //ChangeParent(myGameManager.Circle.transform);
+        //StartCoroutine(Rotate(myGameManager.Circle.transform, 1, inverse));
+        //ChangeParent(transform);
+
+        //myGameManager.MyGrid.CheckTrans3Matches();
 
         TriggeredCount++;
+    }
+
+    private IEnumerator Rotate(Transform trnsfrm, float duration, bool inverse)
+    {
+        Assert.IsNotNull(trnsfrm, "Transform can't be Null");
+        IsRotating = true;
+        Vector3 startRotation = trnsfrm.rotation.eulerAngles;
+        int rotateDegree = inverse == false ? 120 : -120;
+        Vector3 targetRotation = startRotation + new Vector3(0, 0, rotateDegree);
+
+        float time = 0;
+
+        while (time < duration)
+        {
+            trnsfrm.rotation = Quaternion.Euler(Vector3.Lerp(startRotation, targetRotation, time / duration));
+            time += Time.deltaTime;
+            yield return null;
+        }
+        trnsfrm.rotation = Quaternion.Euler(targetRotation);
+
+        yield return new WaitForEndOfFrame();
+
+        IsRotating = false;
     }
 
     public void ChangeParent(Transform parent)
     {
         foreach (var item in Closest3Tranforms)
         {
-            item.Key.parent = parent;
+            item.Key.parent = (parent);
         }
     }
 
@@ -160,9 +208,10 @@ public class HexagonManager : MonoBehaviour
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i).transform;
-            Vector2 childScrPos = Camera.main.WorldToScreenPoint(child.position);
+            //Vector2 childScrPos = Camera.main.WorldToScreenPoint(child.position);
+            Vector2 childScrPos = (child.position);
 
-            float distance = Vector2.Distance(childScrPos, originPos);
+            float distance = Vector2.Distance(childScrPos, (originPos));
 
             childDistance.Add(child, distance);
         }
@@ -182,7 +231,7 @@ public class HexagonManager : MonoBehaviour
             foreach (var trnsfrmDestroy in willDestroy)
             {
                 int x, y;
-                myGameManager.MyGrid.GetXY(trnsfrmDestroy.position, out x, out y);
+                //myGameManager.MyGrid.GetXY(trnsfrmDestroy.position, out x, out y);
                 //Move(myGameManager.MyGrid.GetValue(x + 1, y + 1), myGameManager.MyGrid.GetValue(x + 1, y + 1).position - Vector3.up);
 
                 emptyPos.Add(trnsfrmDestroy.position);
@@ -204,8 +253,10 @@ public class HexagonManager : MonoBehaviour
             for (int l = k + 1; l < colorCount[colorAtCenterHex].Count; l++)
             {
                 float d = Vector3.Distance(colorCount[colorAtCenterHex][k].position, colorCount[colorAtCenterHex][l].position);
-                if (d < 0.60)
+                if (d < 0.8f)
                 {
+                    //print("will destroy : " + colorCount[colorAtCenterHex][k].position);
+                    //print("will destroy : " + colorCount[colorAtCenterHex][l].position);
                     willDestroy.Add(colorCount[colorAtCenterHex][k]);
                     willDestroy.Add(colorCount[colorAtCenterHex][l]);
                 }
@@ -221,10 +272,10 @@ public class HexagonManager : MonoBehaviour
             colorCount.Add(color, new List<Transform>());
         }
 
-        List<KeyValuePair<Transform, float>> closestTransformList = CalcClosestTransforms(Camera.main.WorldToScreenPoint(hexAtCenter)).ToList();
+        List<KeyValuePair<Transform, float>> closestTransformList = CalcClosestTransforms(hexAtCenter).ToList();
         for (int j = 1; j < closestTransformList.Count; j++)
         {
-            if (closestTransformList[j].Value < 60)
+            if (closestTransformList[j].Value < 0.8f)
             {
                 if (colorCount.ContainsKey(closestTransformList[j].Key.GetComponent<SpriteRenderer>().color))
                 {
@@ -248,11 +299,11 @@ public class HexagonManager : MonoBehaviour
                 colorCount.Add(color, 0);
             }
 
-            IEnumerable<KeyValuePair<Transform, float>> closestTransforms = CalcClosestTransforms(Camera.main.WorldToScreenPoint(transform.GetChild(i).position));
+            IEnumerable<KeyValuePair<Transform, float>> closestTransforms = CalcClosestTransforms(transform.GetChild(i).position);
             List<KeyValuePair<Transform, float>> closestTransformList = closestTransforms.ToList();
             for (int j = 1; j < closestTransformList.Count; j++)
             {
-                if (closestTransformList[j].Value < 60)
+                if (closestTransformList[j].Value < 0.8f)
                 {
                     if (colorCount.ContainsKey(closestTransformList[j].Key.GetComponent<SpriteRenderer>().color))
                     {

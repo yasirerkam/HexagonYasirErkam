@@ -28,7 +28,6 @@ public class MyGrid : MonoBehaviour
         get { return isMoving; }
         set { isMoving = value; }
     }
-    private float DroppingTime { get; set; }
     public MyGameManager MyGameManager { get => myGameManager; set => myGameManager = value; }
     public Vector3[,] GridPosArray { get => gridPosArray; set => gridPosArray = value; }
     public GameObject Hexagon { get => hexagon; set => hexagon = value; }
@@ -38,7 +37,6 @@ public class MyGrid : MonoBehaviour
     {
         MyGameManager = GameObject.Find("MyGameManager").GetComponent<MyGameManager>();
         distanceOfHexagons = 0.025f;
-        DroppingTime = myGameManager.GlobalVariables.DroppingTime;
     }
 
     public void CreateGrid(int countX, int countY)
@@ -59,10 +57,12 @@ public class MyGrid : MonoBehaviour
                 {
                     GameObject go;
 
-                    go = Instantiate(Hexagon, GetWorldPosition(x, y), Quaternion.identity, transform);
+                    go = Instantiate(Hexagon, GetWorldPosition(x, y), Quaternion.identity);
+                    go.transform.SetParent(gameObject.transform);
                     go.transform.localScale *= MyGameManager.GlobalVariables.HexagonScale;
 
                     GridPosArray[x, y] = go.transform.position;
+                    //print("go.transform.position: " + go.transform.position);
 
                     //Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x, y + 1), Color.white, 100f);
                     //Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x + 1, y), Color.white, 100f);
@@ -88,7 +88,8 @@ public class MyGrid : MonoBehaviour
 
     public Vector3 GetWorldPosition(int x, int y)
     {
-        Vector3 pos = transform.position + new Vector3(x, y) * Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale - new Vector3(x * Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale * .125f, 0, 0);
+        Vector3 pos = MyGameManager.HexagonManager.transform.position + new Vector3(x, y) * Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale - new Vector3(x * Hexagon.GetComponent<SpriteRenderer>().size.x * MyGameManager.GlobalVariables.HexagonScale * .125f, 0, 0);
+        //print(MyGameManager.HexagonManager.transform.position);
 
         if (x % 2 == 0)
         {
@@ -100,13 +101,15 @@ public class MyGrid : MonoBehaviour
         }
     }
 
-    public void GetXY(Vector3 worldPosition, out int x, out int y)
+    public void GetXY(Vector3 centerPosition, out int x, out int y)
     {
         for (int i = 0; i < gridPosArray.GetLength(0); i++)
         {
             for (int j = 0; j < gridPosArray.GetLength(1); j++)
             {
-                if (Vector3.Distance(gridPosArray[i, j], worldPosition) < .3f)
+                //print("gridPosArray: " + gridPosArray[i, j]);
+                //print("centerPosition: " + centerPosition);
+                if (Vector3.Distance(gridPosArray[i, j], centerPosition) < .3f)
                 {
                     x = i;
                     y = j;
@@ -177,7 +180,7 @@ public class MyGrid : MonoBehaviour
             try
             {
                 Transform trnsfrm = GetValue(xyEmpty.Key, y + xyEmpty.Value.Count);
-                IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, DroppingTime, xyEmpty.Value.Count);
+                IEnumerator coroutine = Move(trnsfrm, xyEmpty, y, myGameManager.GlobalVariables.DroppingTime, xyEmpty.Value.Count);
                 StartCoroutine(coroutine);
             }
             catch (Exception)
@@ -209,19 +212,18 @@ public class MyGrid : MonoBehaviour
         if (y < countY - hexCount)
         {
             Transform trnsfrmP = GetValue(xyEmpty.Key, y + hexCount);
-            IEnumerator coroutine = Move(trnsfrmP, xyEmpty, y, DroppingTime, hexCount);
+            IEnumerator coroutine = Move(trnsfrmP, xyEmpty, y, myGameManager.GlobalVariables.DroppingTime, hexCount);
             StartCoroutine(coroutine);
         }
         else
         {
             CreateAndFall(xyEmpty, y, hexCount);
         }
-
-        IsMoving = false;
     }
 
     private void CreateAndFall(KeyValuePair<int, List<int>> xy, int y, int hexCount)
     {
+        IsMoving = true;
         if (y < countY)
         {
             GameObject go;
@@ -237,20 +239,21 @@ public class MyGrid : MonoBehaviour
             go.transform.localScale *= MyGameManager.GlobalVariables.HexagonScale;
             go.GetComponent<SpriteRenderer>().color = MyGameManager.GlobalVariables.Colors[UnityEngine.Random.Range(0, MyGameManager.GlobalVariables.Colors.Count)];
             Transform trnsfrmP = go.transform;
-            IEnumerator coroutine = Move(trnsfrmP, xy, y, DroppingTime, hexCount);
+            IEnumerator coroutine = Move(trnsfrmP, xy, y, myGameManager.GlobalVariables.DroppingTime, hexCount);
             StartCoroutine(coroutine);
         }
         else
         {
             if (IsInvoking("CheckMatches") == false)
             {
-                Invoke("CheckMatches", .75f);
+                Invoke("CheckMatches", .5f);
             }
         }
     }
 
     public void CheckMatches()
     {
+        IsMoving = true;
         Transform[] transforms = GetComponentsInChildren<Transform>();
 
         for (int i = 1; i < transforms.Length; i++)
@@ -264,6 +267,7 @@ public class MyGrid : MonoBehaviour
                 break;
             }
         }
+        IsMoving = false;
     }
 
     public bool CheckMatche(Transform trns)
