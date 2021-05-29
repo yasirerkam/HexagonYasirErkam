@@ -5,15 +5,18 @@ using UnityEngine;
 public class GlobalVariables : MonoBehaviour
 {
     private MyGameManager myGameManager;
-    [SerializeField]
-    private List<Color> colors;
     private float creatingDistance;
     private float droppingTime;
     private float hexagonScale;
+    [Range(1, 9), SerializeField]
     private int countX;
+    [Range(1, 9), SerializeField]
     private int countY;
+    [SerializeField]
+    private List<Color> colors;
     private int score;
     private int scoreIncreaseAmount;
+    [SerializeField]
     private int bombEveryXscore;
 
     public int BombEveryXscore
@@ -75,8 +78,8 @@ public class GlobalVariables : MonoBehaviour
         CreatingDistance = 6;
         DroppingTime = .15f;
         HexagonScale = .23f;
-        countX = 8;
-        CountY = 9;
+        //countX = 8;
+        //CountY = 9;
         ScoreIncreaseAmount = 5;
         BombEveryXscore = 100;
     }

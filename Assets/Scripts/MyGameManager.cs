@@ -108,4 +108,59 @@ public class MyGameManager : MonoBehaviour
         }
         else return false;
     }
+
+    public bool CheckGameOver()
+    {
+        SpriteRenderer[] spriteRenderers = MyGrid.GetComponentsInChildren<SpriteRenderer>();
+
+        for (int i = 0; i < spriteRenderers.Length - 1; i++)
+        {
+            if (spriteRenderers[i].color == spriteRenderers[i + 1].color)
+            {
+                int x, y;
+                MyGrid.GetXY(spriteRenderers[i].transform.position, out x, out y);
+
+                List<Color> colors = new List<Color>();
+
+                int addIndexToY;
+                if (x % 2 == 0)
+                    addIndexToY = 0;
+                else
+                    addIndexToY = -1;
+
+                colors.Add(MyGrid.GetValue(x + 1, y + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x + 1, y + 1 + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x + 1, y + 2 + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x + 2, y + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x + 2, y + 1 + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+
+                colors.Add(MyGrid.GetValue(x - 1, y + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x - 1, y + 1 + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x - 1, y + 2 + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x - 2, y + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+                colors.Add(MyGrid.GetValue(x - 2, y + 1 + addIndexToY)?.GetComponent<SpriteRenderer>().color ?? new Color());
+
+                foreach (Color color in colors)
+                {
+                    if (spriteRenderers[i].color == color)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void CountDownBombs()
+    {
+        GameObject[] bombs = GameObject.FindGameObjectsWithTag("bomb");
+
+        foreach (var bomb in bombs)
+        {
+            bomb.GetComponent<Bomb>().CountDown--;
+        }
+    }
 }

@@ -306,5 +306,12 @@ public class MyGrid : MonoBehaviour
         {
             MyGameManager.HexagonManager.PlayAgain = true;
         }
+        else
+        {
+            //if (MyGameManager.CheckGameOver())
+            //{
+            //    MyGameManager.UI.gameOver.SetActive(true);
+            //}
+        }
     }
 }

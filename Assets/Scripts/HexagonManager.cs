@@ -97,13 +97,13 @@ public class HexagonManager : MonoBehaviour
             {
                 TriggeredCount = 0;
                 Rotate3Transform(true);
-                CountDownBombs();
+                MyGameManager.CountDownBombs();
             }
             else if (deltaRotation < -10)
             {
                 TriggeredCount = 0;
                 Rotate3Transform(false);
-                CountDownBombs();
+                MyGameManager.CountDownBombs();
             }
             else
             {
@@ -246,16 +246,6 @@ public class HexagonManager : MonoBehaviour
             MyGameManager.GlobalVariables.Score += MyGameManager.GlobalVariables.ScoreIncreaseAmount;
 
             MyGameManager.MyGrid.MoveHexagonsToEmpty(emptyPos);
-        }
-    }
-
-    public void CountDownBombs()
-    {
-        GameObject[] bombs = GameObject.FindGameObjectsWithTag("bomb");
-
-        foreach (var bomb in bombs)
-        {
-            bomb.GetComponent<Bomb>().CountDown--;
         }
     }
 
