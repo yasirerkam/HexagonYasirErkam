@@ -78,6 +78,6 @@ public class GlobalVariables : MonoBehaviour
         countX = 8;
         CountY = 9;
         ScoreIncreaseAmount = 5;
-        BombEveryXscore = 20;
+        BombEveryXscore = 100;
     }
 }

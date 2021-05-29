@@ -35,7 +35,7 @@ public class HexagonManager : MonoBehaviour
     {
         if (MyGameManager.CircleSpriteRenderer.enabled == false)
         {
-            if (Input.GetMouseButtonUp(0))
+            if (Input.GetMouseButtonUp(0) && MyGameManager.CheckInsideOfMouseArea(Input.mousePosition))
             {
                 CreateCircle(Input.mousePosition);
             }
@@ -63,13 +63,13 @@ public class HexagonManager : MonoBehaviour
 
     private void RotateCircle()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && MyGameManager.CheckInsideOfMouseArea(Input.mousePosition))
         {
             touchPosStart = Input.mousePosition;
 
             CalcPrevRotation(Input.mousePosition);
         }
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0) && MyGameManager.CheckInsideOfMouseArea(Input.mousePosition))
         {
             touchPosEnd = Input.mousePosition;
 
